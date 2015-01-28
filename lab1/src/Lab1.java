@@ -1,5 +1,4 @@
 
-
 import TSim.*;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -14,6 +13,7 @@ public class Lab1 {
 
     public Lab1(String[] args) {
         final int firstSpeed, secondSpeed, simulationSpeed;
+        final List<Semaphore> sections = new ArrayList<>();
 
         if (args.length >= 1) {
             firstSpeed = Integer.parseInt(args[0]);
@@ -31,19 +31,21 @@ public class Lab1 {
             simulationSpeed = 100;
         }
 
-        final List<Semaphore> sections = new ArrayList<>();
-
         for (int i = 0; i < 6; i++) {
             sections.add(new Semaphore(1, true));
         }
         //TSimInterface.getInstance().setDebug(true);
-        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed*2, Train.POS_DIRECTION, createSensors(sections), sections.get(0));
-        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed*2, Train.NEG_DIRECTION, createSensors(sections), sections.get(5));
+        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed * 2, Train.POS_DIRECTION, createSensors(sections), sections.get(0));
+        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed * 2, Train.NEG_DIRECTION, createSensors(sections), sections.get(5));
         new Thread(firstTrain).start();
         new Thread(secondTrain).start();
     }
 
+
     //Give physical sensors different behaviours
+    //eg sensors.add(new ClaimSensor(6, 6, sections.get(1), Train.POS_DIRECTION)); will add claimsensor-behaviour to physical sensor on [6, 6]
+    //[6, 6] will for example also be a releasesensor as of sensors.add(new ReleaseSensor(6, 6, sections.get(1), Train.NEG_DIRECTION));
+    
     private List<Sensor> createSensors(List<Semaphore> sections){
         final List<Point> switches = new ArrayList<>();
         final List<Sensor> sensors = new ArrayList<>();
@@ -51,6 +53,7 @@ public class Lab1 {
         switches.add(new Point(15, 9));
         switches.add(new Point(4, 9));
         switches.add(new Point(3, 11));
+        
         sensors.add(new ClaimSensor(6, 6, sections.get(1), Train.POS_DIRECTION));
         sensors.add(new ClaimSensor(8, 5, sections.get(1), Train.POS_DIRECTION));
 
@@ -99,15 +102,12 @@ public class Lab1 {
 }
 
 class Train implements Runnable {
-
     public static final int POS_DIRECTION = 1, NEG_DIRECTION = 0;
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final int id, delay;
     private int targetSpeed, direction;
     private final List<Sensor> sensors;
     private final List<Semaphore> claimedSemaphores = new ArrayList<>();
-    
 
     public Train(int id, int speed, int delay, int direction, List<Sensor> sensors, Semaphore section) {
         this.id = id;
@@ -115,17 +115,11 @@ class Train implements Runnable {
         this.delay = delay;
         this.direction = direction;
         this.sensors = sensors;
-        try {
-            tsi.setSpeed(id, speed);
-        } catch (CommandException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
         section.tryAcquire();
         claimedSemaphores.add(section);
     }
 
-    public void claimSemaphore(Semaphore semaphore) throws InterruptedException{
+    public void claimSemaphore(Semaphore semaphore) throws InterruptedException {
         semaphore.acquire();
         claimedSemaphores.add(semaphore);
     }
@@ -142,15 +136,11 @@ class Train implements Runnable {
     }
 
     public void stopTrain() throws CommandException {
-        setSpeed(0);
+        tsi.setSpeed(id, 0);
     }
 
     public void startTrain() throws CommandException {
-        setSpeed(targetSpeed);
-    }
-
-    private void setSpeed(int speed) throws CommandException {
-        tsi.setSpeed(id, speed);
+        tsi.setSpeed(id, targetSpeed);
     }
 
     public void stopAtStation() throws CommandException, InterruptedException {
@@ -158,26 +148,28 @@ class Train implements Runnable {
         Thread.sleep(Math.abs(targetSpeed) * delay);
         targetSpeed = (-targetSpeed);
         //Changes POS_DIRECTION to NEG_DIRECTION and NEG_DIRECTION to POS_DIRECTION
-        direction  = (direction == POS_DIRECTION ? NEG_DIRECTION : POS_DIRECTION);
+        direction = (direction == POS_DIRECTION ? NEG_DIRECTION : POS_DIRECTION);
         startTrain();
     }
 
     @Override
     public void run() {
-        while (true) {
-            try {
+        try {
+            startTrain();
+            while (true) {
+
                 SensorEvent e = tsi.getSensor(id);
                 for (Sensor sensor : sensors) {
-                    if(sensor.matchingSensor(e.getXpos(), e.getYpos(),e.getStatus(), direction)) {
+                    if (sensor.triggerSensor(e.getXpos(), e.getYpos(), e.getStatus(), direction)) {
                         sensor.activateSensor(this);
                     }
                 }
-            } catch (CommandException e) {
-                e.printStackTrace();
-                System.exit(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+        } catch (CommandException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
@@ -188,25 +180,25 @@ class Train implements Runnable {
 //such as "ClaimSensor" and "SwitchSensor"
 abstract class Sensor {
     private final int x, y, status, direction;
-    public Sensor(int x, int y, int status, int direction){
+
+    public Sensor(int x, int y, int status, int direction) {
         this.x = x;
         this.y = y;
         this.status = status;
         this.direction = direction;
     }
-    
+
     //Returns true if this sensor is at [x, y], triggered by status and direction
-    public boolean matchingSensor(int x, int y, int status, int direction){
-        return this.x==x && this.y == y && this.status == status && this.direction == direction;
+    public boolean triggerSensor(int x, int y, int status, int direction) {
+        return this.x == x && this.y == y && this.status == status && this.direction == direction;
     }
-    
+
     //The behaviour of the sensor upon getting triggered
     public abstract void activateSensor(Train train) throws TSim.CommandException, InterruptedException;
 }
 
 //A sensor which claims a semaphore on getting triggered
 class ClaimSensor extends Sensor {
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final Semaphore semaphore;
 
@@ -229,7 +221,6 @@ class ClaimSensor extends Sensor {
 
 //A sensor which claims a semaphore and sets a switch on getting triggered
 class SwitchSensor extends ClaimSensor {
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final Point trainSwitch;
     private final int switchDir;
@@ -262,7 +253,6 @@ class SwitchSensor extends ClaimSensor {
 
 //A sensor that releases a semaphore on getting triggered
 class ReleaseSensor extends Sensor {
-
     private final Semaphore semaphore;
 
     public ReleaseSensor(int x, int y, Semaphore semaphore, int direction) {
@@ -278,7 +268,6 @@ class ReleaseSensor extends Sensor {
 
 //A sensor which stops a train on getting triggered
 class StationSensor extends Sensor {
-
     public StationSensor(int x, int y, int direction) {
         super(x, y, SensorEvent.ACTIVE, direction);
     }
@@ -287,7 +276,4 @@ class StationSensor extends Sensor {
     public void activateSensor(Train train) throws TSim.CommandException, InterruptedException {
         train.stopAtStation();
     }
-
 }
-
-
