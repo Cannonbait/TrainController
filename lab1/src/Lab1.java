@@ -1,5 +1,4 @@
 
-
 import TSim.*;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -37,12 +36,13 @@ public class Lab1 {
             sections.add(new Semaphore(1, true));
         }
         //TSimInterface.getInstance().setDebug(true);
-        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed*2, Train.POS_DIRECTION, createSensors(sections), sections.get(0));
-        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed*2, Train.NEG_DIRECTION, createSensors(sections), sections.get(5));
+        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed * 2, Train.POS_DIRECTION, createSensors(sections), sections.get(0));
+        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed * 2, Train.NEG_DIRECTION, createSensors(sections), sections.get(5));
         new Thread(firstTrain).start();
         new Thread(secondTrain).start();
     }
-    private List<Sensor> createSensors(List<Semaphore> sections){
+
+    private List<Sensor> createSensors(List<Semaphore> sections) {
         final List<Point> switches = new ArrayList<>();
         final List<Sensor> sensors = new ArrayList<>();
         switches.add(new Point(17, 7));
@@ -95,6 +95,7 @@ public class Lab1 {
         return sensors;
     }
 }
+
 class Train implements Runnable {
 
     public static final int POS_DIRECTION = 1, NEG_DIRECTION = 0;
@@ -104,7 +105,6 @@ class Train implements Runnable {
     private int targetSpeed, direction;
     private final List<Sensor> sensors;
     private final List<Semaphore> claimedSemaphores = new ArrayList<>();
-    
 
     public Train(int id, int speed, int delay, int direction, List<Sensor> sensors, Semaphore section) {
         this.id = id;
@@ -112,17 +112,11 @@ class Train implements Runnable {
         this.delay = delay;
         this.direction = direction;
         this.sensors = sensors;
-        try {
-            tsi.setSpeed(id, speed);
-        } catch (CommandException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
         section.tryAcquire();
         claimedSemaphores.add(section);
     }
 
-    public void claimSemaphore(Semaphore semaphore) throws InterruptedException{
+    public void claimSemaphore(Semaphore semaphore) throws InterruptedException {
         semaphore.acquire();
         claimedSemaphores.add(semaphore);
     }
@@ -155,43 +149,50 @@ class Train implements Runnable {
         Thread.sleep(Math.abs(targetSpeed) * delay);
         targetSpeed = (-targetSpeed);
         //Changes POS_DIRECTION to NEG_DIRECTION and NEG_DIRECTION to POS_DIRECTION
-        direction  = (direction == POS_DIRECTION ? NEG_DIRECTION : POS_DIRECTION);
+        direction = (direction == POS_DIRECTION ? NEG_DIRECTION : POS_DIRECTION);
         startTrain();
     }
 
     @Override
     public void run() {
-        while (true) {
-            try {
+        try {
+            startTrain();
+            while (true) {
+
                 SensorEvent e = tsi.getSensor(id);
                 for (Sensor sensor : sensors) {
-                    if(sensor.matchingSensor(e.getXpos(), e.getYpos(),e.getStatus(), direction)) {
+                    if (sensor.matchingSensor(e.getXpos(), e.getYpos(), e.getStatus(), direction)) {
                         sensor.activateSensor(this);
                     }
                 }
-            } catch (CommandException e) {
-                e.printStackTrace();
-                System.exit(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+        } catch (CommandException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
 
+
+}
+
 abstract class Sensor {
+
     private final int x, y, status, direction;
-    public Sensor(int x, int y, int status, int direction){
+
+    public Sensor(int x, int y, int status, int direction) {
         this.x = x;
         this.y = y;
         this.status = status;
         this.direction = direction;
     }
-    
-    public boolean matchingSensor(int x, int y, int status, int direction){
-        return this.x==x && this.y == y && this.status == status && this.direction == direction;
+
+    public boolean matchingSensor(int x, int y, int status, int direction) {
+        return this.x == x && this.y == y && this.status == status && this.direction == direction;
     }
-    
+
     public abstract void activateSensor(Train train) throws TSim.CommandException, InterruptedException;
 }
 
@@ -276,5 +277,3 @@ class StationSensor extends Sensor {
     }
 
 }
-
-
