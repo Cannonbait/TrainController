@@ -17,14 +17,11 @@ public class ClaimSensor extends Sensor {
     }
 
     @Override
-    public void activateSensor(int x, int y, Train train, int status) throws CommandException, InterruptedException {
-        if (matchingSensor(x, y, train.getDirection())) {
-            if (status == SensorEvent.ACTIVE) {
+    public void activateSensor(Train train, int status) throws CommandException, InterruptedException {
+        if (status == SensorEvent.ACTIVE) {
                 train.stopTrain();
                 train.claimSemaphore(semaphore);
                 train.startTrain();
-
-            }
         }
     }
 }

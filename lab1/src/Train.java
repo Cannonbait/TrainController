@@ -74,7 +74,9 @@ public class Train implements Runnable {
             try {
                 SensorEvent e = tsi.getSensor(id);
                 for (Sensor sensor : sensors) {
-                    sensor.activateSensor(e.getXpos(), e.getYpos(), this, e.getStatus());
+                    if(sensor.matchingSensor(e.getXpos(), e.getYpos(), direction)) {
+                        sensor.activateSensor(this, e.getStatus());
+                    }
                 }
             } catch (CommandException e) {
                 e.printStackTrace();

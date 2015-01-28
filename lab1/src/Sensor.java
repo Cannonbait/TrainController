@@ -11,5 +11,5 @@ public abstract class Sensor {
         return this.x==x && this.y == y && this.direction == direction;
     }
     
-    public abstract void activateSensor(int x, int y, Train train, int status) throws TSim.CommandException, InterruptedException;
+    public abstract void activateSensor(Train train, int status) throws TSim.CommandException, InterruptedException;
 }

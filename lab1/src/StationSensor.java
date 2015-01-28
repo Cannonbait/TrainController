@@ -6,10 +6,8 @@ public class StationSensor extends Sensor{
     }
     
     @Override
-    public void activateSensor(int x, int y, Train train, int status) throws TSim.CommandException, InterruptedException{
-        if (matchingSensor(x, y, train.getDirection())){
-            train.stopAtStation();
-        }
+    public void activateSensor(Train train, int status) throws TSim.CommandException, InterruptedException{ 
+    	train.stopAtStation();
     }
 
     

@@ -17,8 +17,8 @@ public class SwitchSensor extends ClaimSensor {
     }
 
     @Override
-    public void activateSensor(int x, int y, Train train, int status) throws CommandException, InterruptedException {
-        if (matchingSensor(x, y, train.getDirection()) && status == SensorEvent.ACTIVE) {
+    public void activateSensor(Train train, int status) throws CommandException, InterruptedException {
+        if (status == SensorEvent.ACTIVE) {
             final Semaphore semaphore = getSemaphore();
             if (semaphore.availablePermits() > 0) {
                 train.claimSemaphore(semaphore);

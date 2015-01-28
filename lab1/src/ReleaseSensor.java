@@ -12,8 +12,8 @@ public class ReleaseSensor extends Sensor {
     }
 
     @Override
-    public void activateSensor(int x, int y, Train train, int status) {
-        if (matchingSensor(x, y, train.getDirection()) && status == SensorEvent.INACTIVE) {
+    public void activateSensor(Train train, int status) {
+        if (status == SensorEvent.INACTIVE) {
             train.releaseSemaphore(semaphore);
         }
     }
