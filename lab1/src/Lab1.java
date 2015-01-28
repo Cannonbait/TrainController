@@ -42,6 +42,8 @@ public class Lab1 {
         new Thread(firstTrain).start();
         new Thread(secondTrain).start();
     }
+
+    //Give physical sensors different behaviours
     private List<Sensor> createSensors(List<Semaphore> sections){
         final List<Point> switches = new ArrayList<>();
         final List<Sensor> sensors = new ArrayList<>();
@@ -95,6 +97,7 @@ public class Lab1 {
         return sensors;
     }
 }
+
 class Train implements Runnable {
 
     public static final int POS_DIRECTION = 1, NEG_DIRECTION = 0;
@@ -179,6 +182,10 @@ class Train implements Runnable {
     }
 }
 
+//Represents any sensor with a certain behaviour
+//A physical sensor can have several behaviours
+//eg a physical sensor on 17, 7 might trigger many behavioural sensors
+//such as "ClaimSensor" and "SwitchSensor"
 abstract class Sensor {
     private final int x, y, status, direction;
     public Sensor(int x, int y, int status, int direction){
@@ -188,13 +195,16 @@ abstract class Sensor {
         this.direction = direction;
     }
     
+    //Returns true if this sensor is at [x, y], triggered by status and direction
     public boolean matchingSensor(int x, int y, int status, int direction){
         return this.x==x && this.y == y && this.status == status && this.direction == direction;
     }
     
+    //The behaviour of the sensor upon getting triggered
     public abstract void activateSensor(Train train) throws TSim.CommandException, InterruptedException;
 }
 
+//A sensor which claims a semaphore on getting triggered
 class ClaimSensor extends Sensor {
 
     private final TSimInterface tsi = TSimInterface.getInstance();
@@ -217,6 +227,7 @@ class ClaimSensor extends Sensor {
     }
 }
 
+//A sensor which claims a semaphore and sets a switch on getting triggered
 class SwitchSensor extends ClaimSensor {
 
     private final TSimInterface tsi = TSimInterface.getInstance();
@@ -249,6 +260,7 @@ class SwitchSensor extends ClaimSensor {
     }
 }
 
+//A sensor that releases a semaphore on getting triggered
 class ReleaseSensor extends Sensor {
 
     private final Semaphore semaphore;
@@ -264,6 +276,7 @@ class ReleaseSensor extends Sensor {
     }
 }
 
+//A sensor which stops a train on getting triggered
 class StationSensor extends Sensor {
 
     public StationSensor(int x, int y, int direction) {
