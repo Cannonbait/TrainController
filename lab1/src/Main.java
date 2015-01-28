@@ -29,18 +29,24 @@ public class Main {
             simulationSpeed = 100;
         }
 
-        final List<Sensor> sensors = new ArrayList<>();
         final List<Semaphore> sections = new ArrayList<>();
-        final List<Point> switches = new ArrayList<>();
-        switches.add(new Point(17, 7));
-        switches.add(new Point(15, 9));
-        switches.add(new Point(4, 9));
-        switches.add(new Point(3, 11));
 
         for (int i = 0; i < 6; i++) {
             sections.add(new Semaphore(1, true));
         }
-
+        //TSimInterface.getInstance().setDebug(true);
+        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed, Train.POS_DIRECTION, createSensors(sections), sections.get(0));
+        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed, Train.NEG_DIRECTION, createSensors(sections), sections.get(5));
+        new Thread(firstTrain).start();
+        new Thread(secondTrain).start();
+    }
+    private List<Sensor> createSensors(List<Semaphore> sections){
+        final List<Point> switches = new ArrayList<>();
+        final List<Sensor> sensors = new ArrayList<>();
+        switches.add(new Point(17, 7));
+        switches.add(new Point(15, 9));
+        switches.add(new Point(4, 9));
+        switches.add(new Point(3, 11));
         sensors.add(new ClaimSensor(6, 6, sections.get(1), Train.POS_DIRECTION));
         sensors.add(new ClaimSensor(8, 5, sections.get(1), Train.POS_DIRECTION));
 
@@ -84,11 +90,6 @@ public class Main {
 
         sensors.add(new StationSensor(14, 3, Train.NEG_DIRECTION));
         sensors.add(new StationSensor(14, 5, Train.NEG_DIRECTION));
-
-        //TSimInterface.getInstance().setDebug(true);
-        final Train firstTrain = new Train(1, firstSpeed, simulationSpeed, Train.POS_DIRECTION, sensors, sections.get(0));
-        final Train secondTrain = new Train(2, secondSpeed, simulationSpeed, Train.NEG_DIRECTION, sensors, sections.get(5));
-        new Thread(firstTrain).start();
-        new Thread(secondTrain).start();
+        return sensors;
     }
 }
