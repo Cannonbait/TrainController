@@ -68,8 +68,8 @@ public class Main {
         sensors.add(new SwitchSensor(7, 10, sections.get(4), Train.POS_DIRECTION, switches.get(2), TSimInterface.SWITCH_RIGHT, false));
         sensors.add(new SwitchSensor(1, 10, sections.get(5), Train.POS_DIRECTION, switches.get(3), TSimInterface.SWITCH_LEFT, true));
 
-        sensors.add(new StationSensor(13, 11, Train.POS_DIRECTION));
-        sensors.add(new StationSensor(13, 13, Train.POS_DIRECTION));
+        sensors.add(new StationSensor(15, 11, Train.POS_DIRECTION));
+        sensors.add(new StationSensor(15, 13, Train.POS_DIRECTION));
 
         sensors.add(new ClaimSensor(10, 7, sections.get(1), Train.NEG_DIRECTION));
         sensors.add(new ClaimSensor(10, 8, sections.get(1), Train.NEG_DIRECTION));
@@ -90,8 +90,8 @@ public class Main {
         sensors.add(new SwitchSensor(6, 11, sections.get(4), Train.NEG_DIRECTION, switches.get(3), TSimInterface.SWITCH_LEFT, false));
         sensors.add(new SwitchSensor(6, 13, sections.get(4), Train.NEG_DIRECTION, switches.get(3), TSimInterface.SWITCH_RIGHT, false));
 
-        sensors.add(new StationSensor(14, 3, Train.NEG_DIRECTION));
-        sensors.add(new StationSensor(14, 5, Train.NEG_DIRECTION));
+        sensors.add(new StationSensor(15, 3, Train.NEG_DIRECTION));
+        sensors.add(new StationSensor(15, 5, Train.NEG_DIRECTION));
         return sensors;
     }
 }

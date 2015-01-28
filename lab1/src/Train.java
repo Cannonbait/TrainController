@@ -31,7 +31,8 @@ public class Train implements Runnable {
         claimedSemaphores.add(section);
     }
 
-    public void claimSemaphore(Semaphore semaphore) {
+    public void claimSemaphore(Semaphore semaphore) throws InterruptedException{
+        semaphore.acquire();
         claimedSemaphores.add(semaphore);
     }
 
@@ -75,7 +76,6 @@ public class Train implements Runnable {
                 for (Sensor sensor : sensors) {
                     sensor.activateSensor(e.getXpos(), e.getYpos(), this, e.getStatus());
                 }
-
             } catch (CommandException e) {
                 e.printStackTrace();
                 System.exit(1);

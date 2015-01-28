@@ -2,9 +2,7 @@
 import java.util.concurrent.Semaphore;
 import TSim.*;
 
-
-
-public class ClaimSensor extends Sensor{
+public class ClaimSensor extends Sensor {
 
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final Semaphore semaphore;
@@ -13,8 +11,8 @@ public class ClaimSensor extends Sensor{
         super(x, y, direction);
         this.semaphore = semaphore;
     }
-    
-    public Semaphore getSemaphore(){
+
+    public Semaphore getSemaphore() {
         return semaphore;
     }
 
@@ -22,13 +20,11 @@ public class ClaimSensor extends Sensor{
     public void activateSensor(int x, int y, Train train, int status) throws CommandException, InterruptedException {
         if (matchingSensor(x, y, train.getDirection())) {
             if (status == SensorEvent.ACTIVE) {
-                if (!semaphore.tryAcquire()) {
-                    train.stopTrain();
-                    semaphore.acquire();
-                    train.startTrain();
-                }
+                train.stopTrain();
                 train.claimSemaphore(semaphore);
+                train.startTrain();
+
             }
         }
-    }    
+    }
 }

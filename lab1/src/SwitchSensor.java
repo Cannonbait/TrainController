@@ -20,7 +20,7 @@ public class SwitchSensor extends ClaimSensor {
     public void activateSensor(int x, int y, Train train, int status) throws CommandException, InterruptedException {
         if (matchingSensor(x, y, train.getDirection()) && status == SensorEvent.ACTIVE) {
             final Semaphore semaphore = getSemaphore();
-            if (semaphore.tryAcquire()) {
+            if (semaphore.availablePermits() > 0) {
                 train.claimSemaphore(semaphore);
                 tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), switchDir);
             } else if (alternate){
@@ -28,7 +28,6 @@ public class SwitchSensor extends ClaimSensor {
                 tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), alternateSwitchDir);
             } else {
                 train.stopTrain();
-                semaphore.acquire();
                 train.claimSemaphore(semaphore);
                 tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), switchDir);
                 train.startTrain();
