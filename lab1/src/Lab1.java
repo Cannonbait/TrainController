@@ -155,7 +155,7 @@ class Train implements Runnable {
 
                 SensorEvent e = tsi.getSensor(id);
                 for (Sensor sensor : sensors) {
-                    if (sensor.matchingSensor(e.getXpos(), e.getYpos(), e.getStatus(), direction)) {
+                    if (sensor.triggerSensor(e.getXpos(), e.getYpos(), e.getStatus(), direction)) {
                         sensor.activateSensor(this);
                     }
                 }
@@ -179,7 +179,7 @@ abstract class Sensor {
         this.direction = direction;
     }
 
-    public boolean matchingSensor(int x, int y, int status, int direction) {
+    public boolean triggerSensor(int x, int y, int status, int direction) {
         return this.x == x && this.y == y && this.status == status && this.direction == direction;
     }
 
