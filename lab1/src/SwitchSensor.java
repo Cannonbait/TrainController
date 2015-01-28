@@ -1,5 +1,6 @@
 
 import TSim.*;
+import java.awt.Point;
 import java.util.concurrent.Semaphore;
 
 public class SwitchSensor extends ClaimSensor {
@@ -21,15 +22,15 @@ public class SwitchSensor extends ClaimSensor {
             final Semaphore semaphore = getSemaphore();
             if (semaphore.tryAcquire()) {
                 train.claimSemaphore(semaphore);
-                tsi.setSwitch(trainSwitch.getX(), trainSwitch.getY(), switchDir);
+                tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), switchDir);
             } else if (alternate){
                 final int alternateSwitchDir = (switchDir == TSimInterface.SWITCH_LEFT ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
-                tsi.setSwitch(trainSwitch.getX(), trainSwitch.getY(), alternateSwitchDir);
+                tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), alternateSwitchDir);
             } else {
                 train.stopTrain();
                 semaphore.acquire();
                 train.claimSemaphore(semaphore);
-                tsi.setSwitch(trainSwitch.getX(), trainSwitch.getY(), switchDir);
+                tsi.setSwitch((int)trainSwitch.getX(), (int)trainSwitch.getY(), switchDir);
                 train.startTrain();
             }
         }
