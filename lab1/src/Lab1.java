@@ -13,6 +13,7 @@ public class Lab1 {
 
     public Lab1(String[] args) {
         final int firstSpeed, secondSpeed, simulationSpeed;
+        final List<Semaphore> sections = new ArrayList<>();
 
         if (args.length >= 1) {
             firstSpeed = Integer.parseInt(args[0]);
@@ -29,8 +30,6 @@ public class Lab1 {
         } else {
             simulationSpeed = 100;
         }
-
-        final List<Semaphore> sections = new ArrayList<>();
 
         for (int i = 0; i < 6; i++) {
             sections.add(new Semaphore(1, true));
@@ -49,6 +48,7 @@ public class Lab1 {
         switches.add(new Point(15, 9));
         switches.add(new Point(4, 9));
         switches.add(new Point(3, 11));
+        
         sensors.add(new ClaimSensor(6, 6, sections.get(1), Train.POS_DIRECTION));
         sensors.add(new ClaimSensor(8, 5, sections.get(1), Train.POS_DIRECTION));
 
@@ -97,9 +97,7 @@ public class Lab1 {
 }
 
 class Train implements Runnable {
-
     public static final int POS_DIRECTION = 1, NEG_DIRECTION = 0;
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final int id, delay;
     private int targetSpeed, direction;
@@ -133,15 +131,11 @@ class Train implements Runnable {
     }
 
     public void stopTrain() throws CommandException {
-        setSpeed(0);
+        tsi.setSpeed(id, 0);
     }
 
     public void startTrain() throws CommandException {
-        setSpeed(targetSpeed);
-    }
-
-    private void setSpeed(int speed) throws CommandException {
-        tsi.setSpeed(id, speed);
+        tsi.setSpeed(id, targetSpeed);
     }
 
     public void stopAtStation() throws CommandException, InterruptedException {
@@ -175,11 +169,7 @@ class Train implements Runnable {
     }
 }
 
-
-}
-
 abstract class Sensor {
-
     private final int x, y, status, direction;
 
     public Sensor(int x, int y, int status, int direction) {
@@ -197,7 +187,6 @@ abstract class Sensor {
 }
 
 class ClaimSensor extends Sensor {
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final Semaphore semaphore;
 
@@ -219,7 +208,6 @@ class ClaimSensor extends Sensor {
 }
 
 class SwitchSensor extends ClaimSensor {
-
     private final TSimInterface tsi = TSimInterface.getInstance();
     private final Point trainSwitch;
     private final int switchDir;
@@ -251,7 +239,6 @@ class SwitchSensor extends ClaimSensor {
 }
 
 class ReleaseSensor extends Sensor {
-
     private final Semaphore semaphore;
 
     public ReleaseSensor(int x, int y, Semaphore semaphore, int direction) {
@@ -266,7 +253,6 @@ class ReleaseSensor extends Sensor {
 }
 
 class StationSensor extends Sensor {
-
     public StationSensor(int x, int y, int direction) {
         super(x, y, SensorEvent.ACTIVE, direction);
     }
@@ -275,5 +261,4 @@ class StationSensor extends Sensor {
     public void activateSensor(Train train) throws TSim.CommandException, InterruptedException {
         train.stopAtStation();
     }
-
 }
