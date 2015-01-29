@@ -108,10 +108,12 @@ class Train implements Runnable {
     private int targetSpeed, direction;
     private final List<Sensor> sensors;
     private final List<Semaphore> claimedSemaphores = new ArrayList<>();
+    private final int MAX_SPEED = 22;
 
     public Train(int id, int speed, int delay, int direction, List<Sensor> sensors, Semaphore section) {
         this.id = id;
-        targetSpeed = speed;
+
+        targetSpeed = (speed > MAX_SPEED) ? MAX_SPEED : speed;
         this.delay = delay;
         this.direction = direction;
         this.sensors = sensors;
